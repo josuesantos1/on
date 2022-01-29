@@ -38,7 +38,8 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var title = cmd.Flag("title").Value.String()
-		Upload(title, args[0])
+		var bucket = cmd.Flag("bucket").Value.String()
+		Upload(title, args[0], bucket)
 	},
 }
 
@@ -51,4 +52,5 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringP("title", "t", "", "Title of the post")
+	rootCmd.Flags().StringP("bucket", "b", "", "S3 bucket name")
 }
