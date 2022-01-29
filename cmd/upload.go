@@ -6,13 +6,62 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/tdewolff/minify/v2"
+	"github.com/tdewolff/minify/v2/css"
+	"github.com/tdewolff/minify/v2/html"
+	"github.com/tdewolff/minify/v2/js"
+	"github.com/tdewolff/minify/v2/json"
+	"github.com/tdewolff/minify/v2/svg"
+	"github.com/tdewolff/minify/v2/xml"
 )
+
+func optimize(code string, ext string) string {
+
+	m := minify.New()
+	m.AddFunc("text/css", css.Minify)
+	m.AddFunc("text/html", html.Minify)
+	m.AddFunc("image/svg+xml", svg.Minify)
+	m.AddFuncRegexp(regexp.MustCompile("^(application|text)/(x-)?(java|ecma)script$"), js.Minify)
+	m.AddFuncRegexp(regexp.MustCompile("[/+]json$"), json.Minify)
+	m.AddFuncRegexp(regexp.MustCompile("[/+]xml$"), xml.Minify)
+
+	if ext == ".html" {
+		code, err := m.String("text/html", code)
+		if err != nil {
+			panic(err)
+		}
+
+		return code
+	}
+
+	if ext == ".css" {
+		code, err := m.String("text/css", code)
+		if err != nil {
+			panic(err)
+		}
+
+		return code
+	}
+
+	if ext == ".xml" || ext == ".svg" {
+		code, err := m.String("image/svg+xml", code)
+		if err != nil {
+			panic(err)
+		}
+
+		return code
+	}
+
+	return code
+}
 
 func Upload(title string, file string, bucket string, folder string) {
 
@@ -75,7 +124,11 @@ func Upload(title string, file string, bucket string, folder string) {
 		log.Fatal(err)
 	}
 
-	req, err := http.NewRequest("PUT", url, strings.NewReader(string(content)))
+	ext := filepath.Ext(file)
+
+	var optimized = optimize(string(content), ext)
+
+	req, err := http.NewRequest("PUT", url, strings.NewReader(optimized))
 	if err != nil {
 		fmt.Println("error creating request", url)
 		return
@@ -108,4 +161,5 @@ func Upload(title string, file string, bucket string, folder string) {
 
 	fmt.Println("[+] Status:", result.Status)
 	fmt.Println("[+] look:", urlGet)
+
 }
