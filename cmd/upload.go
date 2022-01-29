@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func Upload(title string, file string, bucket string) {
+func Upload(title string, file string, bucket string, folder string) {
 
 	if file == "" {
 		fmt.Println("No file specified")
@@ -31,11 +31,16 @@ func Upload(title string, file string, bucket string) {
 		return
 	}
 
+	if folder != "" {
+		title = folder + "/" + title
+		fmt.Println("[+]", title)
+	}
+
 	var region = os.Getenv("AWS_DEFAULT_REGION")
 
 	if region == "" {
-		fmt.Println("AWS_DEFAULT_REGION is not set")
-		fmt.Println("Please set AWS_DEFAULT_REGION to your region")
+		fmt.Println("[{+}] AWS_DEFAULT_REGION is not set")
+		fmt.Println("[{+}] Please set AWS_DEFAULT_REGION to your region")
 		return
 	}
 
@@ -47,12 +52,12 @@ func Upload(title string, file string, bucket string) {
 	})
 
 	if err != nil {
-		fmt.Println("Error creating session:", err)
+		fmt.Println("[{+}] Error creating session:", err)
 		return
 	}
 
 	svc := s3.New(sess)
-	fmt.Println("Uploading file to S3 bucket:", bucket)
+	fmt.Println("[+] Uploading file to S3 bucket:", bucket)
 	resp, _ := svc.PutObjectRequest(&s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(title),
