@@ -39,7 +39,8 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var title = cmd.Flag("title").Value.String()
 		var bucket = cmd.Flag("bucket").Value.String()
-		Upload(title, args[0], bucket)
+		var folder = cmd.Flag("folder").Value.String()
+		Upload(title, args[0], bucket, folder)
 	},
 }
 
@@ -53,4 +54,5 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringP("title", "t", "", "Title of the post")
 	rootCmd.Flags().StringP("bucket", "b", "", "S3 bucket name")
+	rootCmd.Flags().StringP("folder", "f", "", "Folder name")
 }
